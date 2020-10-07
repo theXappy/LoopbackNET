@@ -1,15 +1,37 @@
-﻿using System.Diagnostics;
+﻿using System;
+using System.Diagnostics;
+using System.IO;
 
 namespace LoopbackNET.Util
 {
     public static class DevconHelper
     {
+        /// <summary>
+        /// Directory where devcon.exe is searched
+        /// </summary>
+        public static string DevconDirectory { get; set; }
+
+        static DevconHelper()
+        {
+            // By default, searching devcon.exe in the current directory
+            DevconDirectory = Environment.CurrentDirectory;
+        }
+
         public static void RunCommand(string devConCommand)
         {
-            ProcessStartInfo psi = new ProcessStartInfo("cmd", $@"/C devcon.exe {devConCommand}");
+            // Make sure devcon.exe exists
+            string devconPath = Path.Combine(DevconDirectory, "devcon.exe");
+            if(!File.Exists(devconPath))
+                throw new FileNotFoundException($"Could not find devcon.exe in the directory: {DevconDirectory}"); 
+
+            ProcessStartInfo psi = new ProcessStartInfo("cmd", $@"/C ""{devconPath}"" {devConCommand}");
             psi.WindowStyle = ProcessWindowStyle.Hidden;
             Process devconProc = Process.Start(psi);
             devconProc.WaitForExit();
+
+            // Make sure devcon.exe finished with a success
+            if(devconProc.ExitCode != 0)
+                throw new Exception($"devcon.exe finished with non-zero exit code. Code: {devconProc.ExitCode}");
         }
 
         /// <summary>

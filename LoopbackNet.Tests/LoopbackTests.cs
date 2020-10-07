@@ -1,6 +1,8 @@
 ﻿using System;
+using System.IO;
 using System.Linq;
 using System.Net.NetworkInformation;
+using LoopbackNET.Util;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace LoopbackNET.Tests
@@ -163,6 +165,51 @@ namespace LoopbackNET.Tests
             Assert.IsNotNull(loop3.NetworkInterface);
             Assert.AreEqual(loop3.NetworkInterface.Id, loop2.NetworkInterface.Id,
                             $"Expected Network Interfaces ID of new interface '2' to be the same as one retrieved before removal of '1'");
+        }
+
+
+        [TestMethod]
+        [ExpectedException(typeof(FileNotFoundException))]
+        public void Create_BadDevconDirectory_ExceptionThrown()
+        {
+            // Arrange
+
+            // Create temporary directory (which obviously doesn't contain devcon.exe)
+            string tempPath = Path.GetTempPath();
+            string tempDir = Path.Combine(tempPath, Guid.NewGuid().ToString());
+            try
+            {
+                Directory.CreateDirectory(tempDir);
+            }
+            catch (Exception e)
+            {
+                throw new Exception("Could not prepare test. Failed to create temporary directory.", e);
+            }
+            // Tell DevconHelper to search in the temp dir
+            string originalDevConDir = DevconHelper.DevconDirectory;
+            DevconHelper.DevconDirectory = tempDir;
+
+
+            // Act
+            try
+            {
+                Loopback.Create();
+            }
+            finally
+            {
+                DevconHelper.DevconDirectory = originalDevConDir;
+            }
+        }
+
+
+        [TestMethod]
+        [ExpectedException(typeof(Exception))]
+        public void DevconHelper_BadCommand_ExceptionThrown()
+        {
+            // Arrange
+
+            // Act
+            DevconHelper.RunCommand("NOT_A_REAL_COMMAND");
         }
     }
 }
