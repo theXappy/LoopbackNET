@@ -4,7 +4,7 @@ Easy way to create and remove loopback network interfaces on Windows (.NET Frame
 Utilizes devcon and netsh.
 
 ## Privileges
-An important not about this library - To use devcon it must be run as an **elevated process**.
+An important note about this library - To use devcon.exe it must be run as an **elevated process**.
 This is currently enforced by making a check in LoopbackNET that the current process is elevated when trying
 to create new loopbacks.
 
